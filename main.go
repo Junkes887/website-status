@@ -8,7 +8,6 @@ import (
 
 func main() {
 	var links []string
-	var chanLinks []chan string
 
 	links = append(links, "https://www.google.com")
 	links = append(links, "https://go.dev")
@@ -29,16 +28,17 @@ func main() {
 	links = append(links, "https://noticias.uol.com.br/colunas/josmar-jozino/2023/08/01/policia-identifica-outro-suspeito-de-envolvimento-na-morte-do-soldado-reis.htm")
 	links = append(links, "https://www1.folha.uol.com.br/poder/2023/08/tarcisio-confirma-convite-a-mae-de-neta-de-bolsonaro-mas-nega-favor.shtml")
 
+	chanLinks := make(chan string, len(links))
+
 	for _, link := range links {
-		chanLink := make(chan string)
-		chanLinks = append(chanLinks, chanLink)
-		go getStatus(link, chanLink)
+		go getStatus(link, chanLinks)
 	}
 
-	for _, resp := range chanLinks {
-		fmt.Println(<-resp)
-		close(resp)
+	for resp := range chanLinks {
+		fmt.Println(resp)
 	}
+
+	close(chanLinks)
 }
 
 func getStatus(link string, chanLinks chan string) {
